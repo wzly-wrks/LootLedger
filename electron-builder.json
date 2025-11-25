@@ -1,0 +1,46 @@
+{
+  "appId": "com.lootledger.app",
+  "productName": "LootLedger",
+  "directories": {
+    "output": "release",
+    "buildResources": "assets"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "certificateFile": null,
+    "certificatePassword": null,
+    "signingHashAlgorithms": [
+      "sha256"
+    ],
+    "sign": null
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "LootLedger"
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-portable.exe"
+  }
+}
