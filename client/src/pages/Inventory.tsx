@@ -17,6 +17,7 @@ export default function Inventory() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const [cardSize, setCardSize] = useState("2");
 
   const [items, setItems] = useState([
     {
@@ -170,10 +171,38 @@ export default function Inventory() {
         )}
 
         <div>
-          <div className="mb-4 text-sm text-muted-foreground">
-            Showing {items.length} items
-          </div>
-          <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "space-y-4"}>
+          {viewMode === "grid" && (
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {items.length} items
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">Card Size:</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  value={cardSize}
+                  className="w-32 accent-primary"
+                  data-testid="slider-inventory-card-size"
+                  onChange={(e) => setCardSize(e.target.value)}
+                />
+                <span className="text-xs text-muted-foreground">({cardSize === '1' ? '5' : cardSize === '2' ? '4' : '3'} per row)</span>
+              </div>
+            </div>
+          )}
+          {viewMode === "list" && (
+            <div className="mb-4 text-sm text-muted-foreground">
+              Showing {items.length} items
+            </div>
+          )}
+          <div className={viewMode === "grid" ? (
+            cardSize === '1' 
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'
+              : cardSize === '2'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+              : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
+          ) : "space-y-4"}>
             {items.map((item) => (
               <InventoryCard
                 key={item.id}
