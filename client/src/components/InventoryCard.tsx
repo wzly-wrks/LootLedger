@@ -8,13 +8,13 @@ interface InventoryCardProps {
   title: string;
   category: string;
   condition: string;
-  purchasePrice: number;
-  sellingPrice: number;
+  purchasePrice: number | string;
+  sellingPrice: number | string;
   quantity: number;
   status: "in_stock" | "sold" | "draft";
   imageUrl?: string;
   tags?: string[];
-  weight?: number;
+  weight?: number | string;
   isGiveaway?: boolean;
   onClick?: () => void;
   onEdit?: () => void;
@@ -41,8 +41,12 @@ export function InventoryCard({
   onDelete,
   onToggleGiveaway,
 }: InventoryCardProps) {
-  const profit = sellingPrice - purchasePrice;
-  const profitPercentage = ((profit / purchasePrice) * 100).toFixed(0);
+  const purchasePriceNum = typeof purchasePrice === 'string' ? parseFloat(purchasePrice) : purchasePrice;
+  const sellingPriceNum = typeof sellingPrice === 'string' ? parseFloat(sellingPrice) : sellingPrice;
+  const weightNum = typeof weight === 'string' ? parseFloat(weight) : weight;
+  
+  const profit = sellingPriceNum - purchasePriceNum;
+  const profitPercentage = ((profit / purchasePriceNum) * 100).toFixed(0);
 
   const statusConfig = {
     in_stock: { label: "In Stock", className: "bg-primary" },
@@ -146,19 +150,19 @@ export function InventoryCard({
             <span>{category}</span>
             <span>{condition}</span>
           </div>
-          {weight && (
+          {weightNum && (
             <div className="text-xs text-muted-foreground">
-              Weight: <span className="font-semibold text-foreground">{weight} lbs</span>
+              Weight: <span className="font-semibold text-foreground">{weightNum} lbs</span>
             </div>
           )}
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <div className="text-muted-foreground">Purchase</div>
-              <div className="font-semibold">${purchasePrice.toFixed(2)}</div>
+              <div className="font-semibold">${purchasePriceNum.toFixed(2)}</div>
             </div>
             <div>
               <div className="text-muted-foreground">Selling</div>
-              <div className="font-bold text-primary">${sellingPrice.toFixed(2)}</div>
+              <div className="font-bold text-primary">${sellingPriceNum.toFixed(2)}</div>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { InventoryCard } from "@/components/InventoryCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { AddItemDialog } from "@/components/AddItemDialog";
+import { EditItemDialog } from "@/components/EditItemDialog";
 import { TagFilter } from "@/components/TagFilter";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { ItemDetailModal } from "@/components/ItemDetailModal";
@@ -16,6 +17,8 @@ export default function Inventory() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -58,6 +61,17 @@ export default function Inventory() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
       setDetailModalOpen(false);
+    },
+  });
+
+  // Edit item mutation
+  const editItemMutation = useMutation({
+    mutationFn: (item: InventoryItem) =>
+      apiRequest("PATCH", `/api/inventory/${item.id}`, item),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      setEditDialogOpen(false);
+      setEditingItem(null);
     },
   });
 
@@ -288,7 +302,10 @@ export default function Inventory() {
                   setSelectedItem(item);
                   setDetailModalOpen(true);
                 }}
-                onEdit={() => console.log("Edit", item.id)}
+                onEdit={() => {
+                  setEditingItem(item);
+                  setEditDialogOpen(true);
+                }}
                 onDuplicate={() => console.log("Duplicate", item.id)}
                 onDelete={() => deleteItemMutation.mutate(item.id)}
                 onToggleGiveaway={() => toggleGiveawayMutation.mutate(item)}
@@ -304,6 +321,14 @@ export default function Inventory() {
         onItemAdded={() => {
           queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
           setAddDialogOpen(false);
+        }}
+      />
+      <EditItemDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        item={editingItem}
+        onSave={(updatedItem) => {
+          editItemMutation.mutate(updatedItem);
         }}
       />
       {selectedItem && (
