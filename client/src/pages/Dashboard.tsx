@@ -3,62 +3,88 @@ import { InventoryCard } from "@/components/InventoryCard";
 import { Package, DollarSign, TrendingUp, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { AddItemDialog } from "@/components/AddItemDialog";
+import { EditItemDialog } from "@/components/EditItemDialog";
+import { ItemDetailModal } from "@/components/ItemDetailModal";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { InventoryItem } from "@shared/schema";
 
 export default function Dashboard() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  const [recentItems, setRecentItems] = useState([
-    {
-      id: "1",
-      title: "Vintage Pokemon Card - Charizard Holo",
-      category: "Trading Cards",
-      condition: "Near Mint",
-      purchasePrice: 150,
-      sellingPrice: 299.99,
-      quantity: 1,
-      status: "in_stock" as const,
-      tags: ["Pokemon", "Holo", "Rare"],
-      isGiveaway: false,
+  // Fetch inventory items
+  const { data: items = [] } = useQuery({
+    queryKey: ["/api/inventory"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/inventory");
+      return res.json() as Promise<InventoryItem[]>;
     },
-    {
-      id: "2",
-      title: "Funko Pop - Iron Man #01",
-      category: "Collectibles",
-      condition: "Mint",
-      purchasePrice: 45,
-      sellingPrice: 89.99,
-      quantity: 3,
-      status: "sold" as const,
-      tags: ["Funko", "Marvel"],
-      isGiveaway: false,
+  });
+
+  // Edit item mutation
+  const editItemMutation = useMutation({
+    mutationFn: (item: InventoryItem) =>
+      apiRequest("PATCH", `/api/inventory/${item.id}`, item),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      setEditDialogOpen(false);
+      setEditingItem(null);
     },
-    {
-      id: "3",
-      title: "Sealed Nike Sneakers - Air Jordan 1",
-      category: "Shoes",
-      condition: "New",
-      purchasePrice: 200,
-      sellingPrice: 450,
-      quantity: 1,
-      status: "draft" as const,
-      tags: ["Sneakers", "Limited"],
-      isGiveaway: false,
+  });
+
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/inventory/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
     },
-    {
-      id: "4",
-      title: "Magic The Gathering - Black Lotus",
-      category: "Trading Cards",
-      condition: "Excellent",
-      purchasePrice: 5000,
-      sellingPrice: 8500,
-      quantity: 1,
-      status: "in_stock" as const,
-      tags: ["MTG", "Power Nine"],
-      isGiveaway: false,
+  });
+
+  // Toggle giveaway mutation
+  const toggleGiveawayMutation = useMutation({
+    mutationFn: (item: InventoryItem) =>
+      apiRequest("PATCH", `/api/inventory/${item.id}`, {
+        ...item,
+        isGiveaway: item.isGiveaway ? 0 : 1,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
     },
-  ]);
+  });
+
+  // Mark as sold mutation
+  const markAsSoldMutation = useMutation({
+    mutationFn: ({ id, buyerName, buyerEmail }: { id: string; buyerName: string; buyerEmail: string }) =>
+      apiRequest("POST", `/api/inventory/${id}/sold`, { buyerName, buyerEmail }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      setDetailModalOpen(false);
+    },
+  });
+
+  const recentItems = items.slice(0, 4);
+
+  // Calculate stats
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalValue = items.reduce((sum, item) => {
+    const sellingPrice = typeof item.sellingPrice === 'string' ? parseFloat(item.sellingPrice) : item.sellingPrice;
+    return sum + (sellingPrice * item.quantity);
+  }, 0);
+
+  const inStock = items.filter(item => item.status === 'in_stock').reduce((sum, item) => sum + item.quantity, 0);
+  const profitMargin = items.length > 0 
+    ? ((items.reduce((sum, item) => {
+        const purchase = typeof item.purchasePrice === 'string' ? parseFloat(item.purchasePrice) : item.purchasePrice;
+        const selling = typeof item.sellingPrice === 'string' ? parseFloat(item.sellingPrice) : item.sellingPrice;
+        return sum + ((selling - purchase) / purchase * 100);
+      }, 0)) / items.length).toFixed(0)
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -70,29 +96,29 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Items"
-          value={248}
-          subtitle="132 in stock"
+          value={totalItems}
+          subtitle={`${inStock} in stock`}
           icon={Package}
           trend={{ value: 12, isPositive: true }}
         />
         <StatsCard
           title="Total Value"
-          value="$34,521"
+          value={`$${totalValue.toFixed(0)}`}
           subtitle="Inventory worth"
           icon={DollarSign}
           trend={{ value: 8, isPositive: true }}
         />
         <StatsCard
           title="Profit Margin"
-          value="42%"
+          value={`${profitMargin}%`}
           subtitle="Average markup"
           icon={TrendingUp}
           trend={{ value: 3, isPositive: true }}
         />
         <StatsCard
           title="Orders"
-          value={89}
-          subtitle="This month"
+          value={items.filter(i => i.status === 'sold').length}
+          subtitle="Total sold"
           icon={ShoppingCart}
           trend={{ value: 15, isPositive: true }}
         />
@@ -129,21 +155,69 @@ export default function Dashboard() {
           {recentItems.map((item) => (
             <InventoryCard
               key={item.id}
-              {...item}
-              onEdit={() => console.log("Edit", item.id)}
-              onDuplicate={() => console.log("Duplicate", item.id)}
-              onDelete={() => console.log("Delete", item.id)}
-              onToggleGiveaway={() => {
-                setRecentItems(recentItems.map(i =>
-                  i.id === item.id ? { ...i, isGiveaway: !i.isGiveaway } : i
-                ));
+              id={item.id}
+              title={item.title}
+              category={item.category}
+              condition={item.condition}
+              purchasePrice={item.purchasePrice}
+              sellingPrice={item.sellingPrice}
+              quantity={item.quantity}
+              status={(item.status as "in_stock" | "sold" | "draft") || "in_stock"}
+              imageUrl={item.imageUrl || undefined}
+              tags={item.tags || undefined}
+              weight={item.weight || undefined}
+              isGiveaway={item.isGiveaway === 1}
+              onClick={() => {
+                setSelectedItem(item);
+                setDetailModalOpen(true);
               }}
+              onEdit={() => {
+                setEditingItem(item);
+                setEditDialogOpen(true);
+              }}
+              onDuplicate={() => console.log("Duplicate", item.id)}
+              onDelete={() => deleteItemMutation.mutate(item.id)}
+              onToggleGiveaway={() => toggleGiveawayMutation.mutate(item)}
             />
           ))}
         </div>
       </div>
 
-      <AddItemDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+      <AddItemDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen}
+        onSubmit={async (data) => {
+          try {
+            const response = await apiRequest("POST", "/api/inventory", data);
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error("Failed to add item:", errorData);
+              return;
+            }
+            queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+          } catch (error) {
+            console.error("Failed to add item:", error);
+          }
+        }}
+      />
+      <EditItemDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        item={editingItem}
+        onSave={(updatedItem) => {
+          editItemMutation.mutate(updatedItem);
+        }}
+      />
+      {selectedItem && (
+        <ItemDetailModal
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          item={selectedItem}
+          onMarkAsSold={(buyerName, buyerEmail) => {
+            markAsSoldMutation.mutate({ id: selectedItem.id, buyerName, buyerEmail });
+          }}
+        />
+      )}
       <FloatingActionButton onClick={() => setAddDialogOpen(true)} />
     </div>
   );

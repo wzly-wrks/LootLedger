@@ -320,7 +320,12 @@ export default function Inventory() {
         onOpenChange={setAddDialogOpen}
         onSubmit={async (data) => {
           try {
-            await apiRequest("POST", "/api/inventory", data);
+            const response = await apiRequest("POST", "/api/inventory", data);
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error("Failed to add item:", errorData);
+              return;
+            }
             queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
           } catch (error) {
             console.error("Failed to add item:", error);

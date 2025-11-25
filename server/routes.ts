@@ -21,10 +21,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/inventory", async (req, res) => {
     try {
+      console.log("POST /api/inventory received:", req.body);
       const parsed = insertInventoryItemSchema.parse(req.body);
+      console.log("Parsed successfully:", parsed);
       const item = await storage.createInventoryItem(parsed);
+      console.log("Item created:", item);
       res.status(201).json(item);
     } catch (error: any) {
+      console.error("POST /api/inventory error:", error);
       res.status(400).json({ error: error.message });
     }
   });
