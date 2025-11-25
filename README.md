@@ -1,6 +1,6 @@
 # LootLedger - Whatnot Inventory Management Application
 
-A comprehensive inventory management application designed for Whatnot marketplace sellers to track collectibles, manage sales, and export listings in Whatnot's CSV format.
+A comprehensive inventory management application designed for Whatnot marketplace sellers to track collectibles, manage sales, and export listings in Whatnot's CSV format. LootLedger helps you manage your collectibles efficiently and grow your business.
 
 ## Overview
 
@@ -403,4 +403,4 @@ MIT License - See LICENSE file for details
 
 ---
 
-Built with ❤️ for Whatnot sellers in ~/Los_Angeles by weezly.works & his army of robots. LootLedger helps you manage your collectibles efficiently and grow your business.
+Built with ❤️ for Whatnot sellers in ~/Los_Angeles by weezly.works & his army of robots.
