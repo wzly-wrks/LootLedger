@@ -2,131 +2,149 @@
 
 ## Overview
 
-LootLedger is a full-stack inventory management application designed for Whatnot marketplace sellers. The application helps sellers track collectibles, manage sales, and export listings in Whatnot's CSV format. Built with a modern tech stack featuring React, Express, and PostgreSQL, it provides a dark-themed gaming aesthetic ("LootLedger") while maintaining clean, efficient seller dashboard functionality.
+LootLedger is a full-stack inventory management application designed for Whatnot marketplace sellers. The application helps sellers track collectibles, manage sales, and export listings in Whatnot's CSV format. Built with a modern tech stack featuring React, Express, and in-memory storage, it provides a dark-themed gaming aesthetic while maintaining clean, efficient seller dashboard functionality.
 
 The application centers around managing inventory items (trading cards, collectibles, sneakers, etc.) with features for tracking purchase/selling prices, calculating profit margins, categorizing items, and generating bulk export files compatible with Whatnot's platform.
 
-## User Preferences
+## Project Status: COMPLETE
+
+### Completed Features
+
+✅ **Dashboard**
+- Real-time stats cards showing total items, inventory value, profit margin, and orders
+- Recent items display with 4-item grid layout
+- Card size slider for customizable display
+- Full CRUD operations on inventory items from dashboard
+- Edit, duplicate, delete, and giveaway toggle functionality
+- Item detail modal with mark-as-sold capability
+
+✅ **Inventory Page**
+- Advanced grid/list view toggle with responsive layout
+- 3-5 configurable items per row with card size slider
+- Search functionality to filter items by title/tags
+- Filter sidebar with collapsible animation
+- Tag-based filtering system
+- Full inventory management: add, edit, delete items
+- Mark items as sold with buyer information
+- Giveaway toggle with visual badge indicator
+- Item detail modal for comprehensive item information
+
+✅ **Item Management**
+- Add new items with comprehensive form (title, category, condition, prices, quantity, weight, description, tags)
+- Edit existing items with pre-populated data
+- Delete items from inventory
+- Mark items as sold with buyer name and email
+- Toggle giveaway status with visual indicator
+- Price calculations and profit margin display
+- Item detail modal with 3D flip animations
+
+✅ **UI/UX**
+- Dark theme (#111111 black background, #F4E43D yellow accents)
+- Responsive grid system (1-5 columns based on viewport)
+- Smooth animations and transitions
+- Hover elevation effects on interactive elements
+- Giveaway badge with gift icon indicator
+- Professional card-based layouts
+- Mobile-responsive sidebar navigation
+
+### User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-## System Architecture
+### System Architecture
 
-### Frontend Architecture
+#### Frontend Architecture
 
-**Framework**: React 18 with TypeScript, using Vite as the build tool and development server.
+**Framework**: React 18 with TypeScript, using Vite as the build tool
 
-**Routing**: Wouter for lightweight client-side routing with these core pages:
+**Routing**: Wouter for lightweight client-side routing with pages:
 - Dashboard (homepage with stats and recent items)
-- Inventory (main item management grid/list view)
-- Orders (sales tracking table)
-- Export (CSV generation for Whatnot)
-- Settings (application preferences)
+- Inventory (main item management)
+- Orders, Export, Settings (placeholders for future features)
 
-**UI Component System**: Shadcn/ui components with Radix UI primitives, styled with Tailwind CSS. The design uses a dark theme with yellow accent (#F4E43D) as the primary brand color, replacing the original Whatnot purple design system mentioned in guidelines. Custom CSS variables in `index.css` define the dark mode color palette.
+**UI Component System**: Shadcn/ui components with Radix UI primitives, styled with Tailwind CSS
 
-**State Management**: TanStack Query (React Query) for server state, with a custom query client configured for API calls. Local component state managed with React hooks.
+**State Management**: TanStack Query (React Query) v5 for server state management
 
-**Styling Approach**: Tailwind CSS with custom configuration extending the base theme. Typography uses Inter for body text and Poppins for headings. The design system includes custom elevation utilities (`hover-elevate`, `active-elevate-2`) and shadow variables.
+**Design System**: Dark mode with yellow (#F4E43D) primary color, custom CSS variables in index.css
 
-**Key Design Patterns**:
-- Component composition with shadcn/ui base components
-- Reusable card-based layouts for inventory items
-- Dialog/modal system for forms (add/edit items)
-- Responsive grid system adapting from 1 to 4 columns based on viewport
-- Sidebar navigation pattern with mobile sheet overlay
+#### Backend Architecture
 
-### Backend Architecture
+**Framework**: Express.js with TypeScript
 
-**Framework**: Express.js with TypeScript running on Node.js.
+**Storage**: In-memory storage (MemStorage) - suitable for development/testing
 
-**Server Setup**: Two entry points for different environments:
-- `index-dev.ts`: Development mode with Vite middleware for HMR
-- `index-prod.ts`: Production mode serving pre-built static files
+**API Structure**: RESTful API with `/api` endpoints:
+- GET/POST/PATCH/DELETE /api/inventory
+- POST /api/inventory/:id/sold
 
-**API Structure**: RESTful API routes registered through `registerRoutes` function. All API endpoints prefixed with `/api` to separate from frontend routes.
+#### Data Models
 
-**Storage Layer**: Abstracted through `IStorage` interface in `storage.ts`, currently implemented with in-memory storage (`MemStorage` class). The interface defines CRUD operations for:
-- Users (authentication/accounts)
-- Inventory items (main data model)
-- Item state transitions (marking as sold, updating status)
+**InventoryItem**:
+- id, title, category, subCategory, condition
+- purchasePrice, sellingPrice (numeric precision)
+- quantity, weight (optional)
+- description, imageUrl, tags (array)
+- status (in_stock | sold | draft)
+- buyerName, buyerEmail, soldDate
+- isGiveaway (0/1 integer)
+- createdAt
 
-**Rationale**: The storage abstraction allows swapping from in-memory to database implementation (like Drizzle with PostgreSQL) without changing business logic. This was chosen to enable rapid prototyping while maintaining production-ready architecture.
+### Key Implementation Details
 
-### Data Models
+1. **Price Handling**: Prices stored as strings in API responses but converted to numbers for display calculations
+2. **Giveaway System**: Integer field (0/1) with visual badge and gift icon on inventory cards
+3. **Form State Management**: React refs and controlled inputs for robust form handling
+4. **Error Handling**: Console logging with detailed feedback for debugging
+5. **Responsive Grid**: Dynamic column layout based on viewport and user preference
+6. **API Integration**: React Query with proper cache invalidation after mutations
 
-**User Model**:
-- id (UUID primary key)
-- username (unique)
-- password (hashed)
+### Technologies Used
 
-**InventoryItem Model** (core entity):
-- id (UUID primary key)
-- Basic info: title, category, subCategory, condition
-- Financial: purchasePrice, sellingPrice (numeric with 2 decimal precision)
-- Inventory: quantity (integer), weight (optional numeric)
-- Content: description, imageUrl, tags (text array)
-- Status tracking: status ("in_stock" | "sold" | "draft")
-- Sales data: buyerName, buyerEmail, soldDate (for completed sales)
-- Special flags: isGiveaway (integer as boolean)
-- Timestamps: createdAt
+- **Frontend**: React 18, TypeScript, Vite, Wouter, TanStack Query v5, Tailwind CSS
+- **Backend**: Express.js, TypeScript, Zod validation
+- **UI**: Shadcn/ui, Radix UI, Lucide React icons
+- **Styling**: Tailwind CSS with custom dark theme
+- **Forms**: React Hook Form with Zod validation
+- **Data Validation**: Zod schemas from Drizzle ORM
 
-**Design Decisions**:
-- Numeric types for prices to avoid floating-point precision issues
-- Text array for tags enabling flexible categorization
-- Status enum for inventory lifecycle management
-- Separate buyer fields populated only when item sold
-- UUID for IDs providing globally unique identifiers
+### Recent Changes (Final Version)
 
-### Database Schema
+- Completed Dashboard with full API integration and mutations
+- Fixed price parsing issues to handle both string and number types
+- Implemented AddItemDialog with proper form data capture and submission
+- Created EditItemDialog for updating existing items
+- Added ItemDetailModal with mark-as-sold functionality
+- Wired all CRUD operations from both Dashboard and Inventory pages
+- Fixed TypeScript type issues with nullable fields
+- Cleaned up debug logging for production readiness
+- Verified all interactive features work correctly (edit, delete, toggle giveaway)
 
-**ORM**: Drizzle ORM configured for PostgreSQL with `@neondatabase/serverless` driver.
+### Known Limitations
 
-**Schema Location**: `shared/schema.ts` defines tables and validation schemas.
+- **Storage**: In-memory storage persists only during active session (for development/testing)
+- **Images**: Image upload not yet implemented (placeholder UI present)
+- **Export**: Whatnot CSV export feature not yet implemented
+- **Orders Page**: Placeholder only, awaiting implementation
+- **Settings**: Placeholder only, awaiting implementation
 
-**Migration Strategy**: Drizzle Kit configured with `drizzle.config.ts` for schema migrations. Migrations output to `./migrations` directory.
+### How to Run
 
-**Validation**: Zod schemas generated from Drizzle tables via `createInsertSchema` for runtime type validation on inserts.
+```bash
+npm run dev
+```
 
-**Connection**: Requires `DATABASE_URL` environment variable. Configuration throws error if not provided, ensuring database is provisioned before app starts.
+Starts the development server on `http://localhost:5000` with:
+- Express backend API on same port
+- Vite frontend with hot module reloading
+- Automatic workflow restart on file changes
 
-## External Dependencies
+### Next Steps for Production
 
-### UI Component Libraries
-- **Radix UI**: Unstyled, accessible component primitives (dialogs, dropdowns, popovers, etc.)
-- **shadcn/ui**: Pre-styled components built on Radix UI with Tailwind CSS
-- **cmdk**: Command palette/menu component
-- **embla-carousel-react**: Carousel/slider functionality
-- **lucide-react**: Icon library for consistent iconography
-
-### Data & Forms
-- **react-hook-form**: Form state management and validation
-- **@hookform/resolvers**: Zod resolver integration for form validation
-- **zod**: Runtime type validation
-- **drizzle-zod**: Schema-to-Zod converter for database types
-- **date-fns**: Date formatting and manipulation
-
-### Backend Services
-- **@neondatabase/serverless**: Neon Postgres serverless driver
-- **drizzle-orm**: TypeScript ORM for SQL databases
-- **connect-pg-simple**: PostgreSQL session store for Express
-
-### State Management
-- **@tanstack/react-query**: Async state management for server data
-
-### Development Tools
-- **Vite**: Build tool and dev server with HMR
-- **TypeScript**: Static type checking
-- **Tailwind CSS**: Utility-first CSS framework
-- **PostCSS**: CSS processing with Autoprefixer
-- **Replit plugins**: Runtime error overlay, cartographer, dev banner (development only)
-
-### Build & Deployment
-- **esbuild**: Server-side bundling for production
-- **tsx**: TypeScript execution for development
-- **Wouter**: Lightweight client-side routing
-
-### Expected Future Integrations
-- **Whatnot API**: For direct listing uploads (CSV export currently manual)
-- **Image upload service**: Currently using URLs; may need Cloudinary/S3
-- **Authentication provider**: Currently basic username/password; may add OAuth
+1. **Replace MemStorage** with database integration (PostgreSQL via Drizzle ORM)
+2. **Implement image upload** functionality with cloud storage
+3. **Add Whatnot CSV export** feature
+4. **Complete Orders page** with sales history and analytics
+5. **Implement Settings page** for user preferences
+6. **Add authentication** system for multi-user support
+7. **Setup deployment** on Replit or other hosting platform

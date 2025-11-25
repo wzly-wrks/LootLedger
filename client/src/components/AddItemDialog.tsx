@@ -68,7 +68,6 @@ export function AddItemDialog({ open, onOpenChange, onSubmit, onItemAdded }: Add
       status: "in_stock",
     };
 
-    console.log("Form submitted with data:", itemData);
     onSubmit?.(itemData);
     onItemAdded?.();
     onOpenChange(false);
