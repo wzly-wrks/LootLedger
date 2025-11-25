@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Inventory from "@/pages/Inventory";
 import Orders from "@/pages/Orders";
 import Export from "@/pages/Export";
+import Settings from "@/pages/Settings";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/inventory" component={Inventory} />
       <Route path="/orders" component={Orders} />
       <Route path="/export" component={Export} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

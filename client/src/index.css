@@ -237,6 +237,17 @@
     }
   }
 
+  @keyframes flip3d {
+    0% {
+      transform: perspective(1000px) rotateY(0deg) scale(0.8);
+      opacity: 0;
+    }
+    100% {
+      transform: perspective(1000px) rotateY(360deg) scale(1);
+      opacity: 1;
+    }
+  }
+
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
@@ -251,6 +262,10 @@
 
   .animate-glow {
     animation: glow 2s infinite;
+  }
+
+  .animate-flip-3d {
+    animation: flip3d 0.6s ease-out;
   }
 
   /* Hide ugly search cancel button in Chrome until we can style it properly */

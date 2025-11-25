@@ -4,6 +4,7 @@ import { FilterSidebar } from "@/components/FilterSidebar";
 import { AddItemDialog } from "@/components/AddItemDialog";
 import { TagFilter } from "@/components/TagFilter";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { ItemDetailModal } from "@/components/ItemDetailModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Grid3x3, List } from "lucide-react";
@@ -13,6 +14,8 @@ export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   //todo: remove mock inventory data
   const items = [
@@ -24,8 +27,11 @@ export default function Inventory() {
       purchasePrice: 150,
       sellingPrice: 299.99,
       quantity: 1,
+      weight: 0.01,
       status: "in_stock" as const,
+      imageUrl: "https://images.unsplash.com/photo-1606503153255-59d9b231b8f5?w=400&h=400&fit=crop",
       tags: ["Pokemon", "Holo", "Rare"],
+      description: "First edition holographic Charizard in near mint condition.",
     },
     {
       id: "2",
@@ -35,8 +41,10 @@ export default function Inventory() {
       purchasePrice: 45,
       sellingPrice: 89.99,
       quantity: 3,
+      weight: 0.5,
       status: "sold" as const,
       tags: ["Funko", "Marvel"],
+      description: "Original Iron Man Funko Pop in mint condition with box.",
     },
     {
       id: "3",
@@ -46,8 +54,10 @@ export default function Inventory() {
       purchasePrice: 200,
       sellingPrice: 450,
       quantity: 1,
+      weight: 2.5,
       status: "draft" as const,
       tags: ["Sneakers", "Limited"],
+      description: "Brand new Air Jordan 1 sneakers, sealed in original box.",
     },
     {
       id: "4",
@@ -57,8 +67,10 @@ export default function Inventory() {
       purchasePrice: 5000,
       sellingPrice: 8500,
       quantity: 1,
+      weight: 0.01,
       status: "in_stock" as const,
       tags: ["MTG", "Power Nine"],
+      description: "Black Lotus from Alpha set, excellent condition with minimal wear.",
     },
     {
       id: "5",
@@ -68,8 +80,10 @@ export default function Inventory() {
       purchasePrice: 1200,
       sellingPrice: 2500,
       quantity: 1,
+      weight: 0.3,
       status: "in_stock" as const,
       tags: ["Baseball", "Autographed"],
+      description: "Authentic Babe Ruth signed baseball with certificate of authenticity.",
     },
     {
       id: "6",
@@ -79,8 +93,10 @@ export default function Inventory() {
       purchasePrice: 300,
       sellingPrice: 650,
       quantity: 2,
+      weight: 1.2,
       status: "in_stock" as const,
       tags: ["Supreme", "Streetwear"],
+      description: "Supreme Box Logo hoodie in near mint condition, size large.",
     },
   ];
 
@@ -146,6 +162,10 @@ export default function Inventory() {
               <InventoryCard
                 key={item.id}
                 {...item}
+                onClick={() => {
+                  setSelectedItem(item);
+                  setDetailModalOpen(true);
+                }}
                 onEdit={() => console.log("Edit", item.id)}
                 onDuplicate={() => console.log("Duplicate", item.id)}
                 onDelete={() => console.log("Delete", item.id)}
@@ -156,6 +176,16 @@ export default function Inventory() {
       </div>
 
       <AddItemDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+      {selectedItem && (
+        <ItemDetailModal
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          item={selectedItem}
+          onMarkAsSold={(buyerName, buyerEmail) => {
+            console.log("Marked as sold:", buyerName, buyerEmail);
+          }}
+        />
+      )}
       <FloatingActionButton onClick={() => setAddDialogOpen(true)} />
     </div>
   );

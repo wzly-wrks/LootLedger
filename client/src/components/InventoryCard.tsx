@@ -14,6 +14,8 @@ interface InventoryCardProps {
   status: "in_stock" | "sold" | "draft";
   imageUrl?: string;
   tags?: string[];
+  weight?: number;
+  onClick?: () => void;
   onEdit?: () => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
@@ -29,6 +31,8 @@ export function InventoryCard({
   status,
   imageUrl,
   tags = [],
+  weight,
+  onClick,
   onEdit,
   onDuplicate,
   onDelete,
@@ -43,7 +47,10 @@ export function InventoryCard({
   };
 
   return (
-    <Card className="overflow-hidden group hover-elevate transition-all duration-300 border border-card-border hover:border-primary/50 animate-slide-up">
+    <Card 
+      className="overflow-hidden group hover-elevate transition-all duration-300 border border-card-border hover:border-primary/50 animate-slide-up cursor-pointer"
+      onClick={onClick}
+    >
       <div className="relative aspect-square bg-muted overflow-hidden">
         {imageUrl ? (
           <img
@@ -107,6 +114,11 @@ export function InventoryCard({
             <span>{category}</span>
             <span>{condition}</span>
           </div>
+          {weight && (
+            <div className="text-xs text-muted-foreground">
+              Weight: <span className="font-semibold text-foreground">{weight} lbs</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <div className="text-muted-foreground">Purchase</div>

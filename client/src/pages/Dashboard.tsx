@@ -97,10 +97,32 @@ export default function Dashboard() {
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-heading font-semibold">Recent Items</h2>
-          <Button variant="ghost" size="sm">View All</Button>
+          <h2 className="text-2xl font-heading font-bold">Recent Items</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">Card Size:</span>
+            <input
+              type="range"
+              min="1"
+              max="3"
+              defaultValue="2"
+              className="w-32 accent-primary"
+              data-testid="slider-card-size"
+              onChange={(e) => {
+                const value = e.target.value;
+                const cardGrid = document.getElementById('recent-items-grid');
+                if (cardGrid) {
+                  cardGrid.className = value === '1' 
+                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'
+                    : value === '2'
+                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                    : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+                }
+              }}
+            />
+            <span className="text-xs text-muted-foreground">({4} per row)</span>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="recent-items-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {recentItems.map((item) => (
             <InventoryCard
               key={item.id}
