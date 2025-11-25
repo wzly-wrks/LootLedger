@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { InventoryCard } from "@/components/InventoryCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
 import { AddItemDialog } from "@/components/AddItemDialog";
@@ -8,6 +9,8 @@ import { ItemDetailModal } from "@/components/ItemDetailModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Grid3x3, List, Filter, X } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { InventoryItem } from "@shared/schema";
 
 export default function Inventory() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -19,93 +22,166 @@ export default function Inventory() {
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [cardSize, setCardSize] = useState("2");
 
-  const [items, setItems] = useState([
+  // Fetch inventory items
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["/api/inventory"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/inventory");
+      return res.json() as Promise<InventoryItem[]>;
+    },
+  });
+
+  // Delete mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/inventory/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+    },
+  });
+
+  // Toggle giveaway mutation
+  const toggleGiveawayMutation = useMutation({
+    mutationFn: (item: InventoryItem) =>
+      apiRequest("PATCH", `/api/inventory/${item.id}`, {
+        ...item,
+        isGiveaway: item.isGiveaway ? 0 : 1,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+    },
+  });
+
+  // Mark as sold mutation
+  const markAsSoldMutation = useMutation({
+    mutationFn: ({ id, buyerName, buyerEmail }: { id: string; buyerName: string; buyerEmail: string }) =>
+      apiRequest("POST", `/api/inventory/${id}/sold`, { buyerName, buyerEmail }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+      setDetailModalOpen(false);
+    },
+  });
+
+  // Mock items for initial state while API is being used
+  const mockItems = [
     {
       id: "1",
       title: "Vintage Pokemon Card - Charizard Holo",
       category: "Trading Cards",
       condition: "Near Mint",
-      purchasePrice: 150,
-      sellingPrice: 299.99,
+      purchasePrice: "150.00",
+      sellingPrice: "299.99",
       quantity: 1,
-      weight: 0.01,
+      weight: "0.01",
       status: "in_stock" as const,
       imageUrl: "https://images.unsplash.com/photo-1606503153255-59d9b231b8f5?w=400&h=400&fit=crop",
       tags: ["Pokemon", "Holo", "Rare"],
       description: "First edition holographic Charizard in near mint condition.",
-      isGiveaway: false,
+      isGiveaway: 0,
+      buyerName: null,
+      buyerEmail: null,
+      soldDate: null,
+      subCategory: null,
+      createdAt: new Date(),
     },
     {
       id: "2",
       title: "Funko Pop - Iron Man #01",
       category: "Collectibles",
       condition: "Mint",
-      purchasePrice: 45,
-      sellingPrice: 89.99,
+      purchasePrice: "45.00",
+      sellingPrice: "89.99",
       quantity: 3,
-      weight: 0.5,
+      weight: "0.5",
       status: "sold" as const,
       tags: ["Funko", "Marvel"],
       description: "Original Iron Man Funko Pop in mint condition with box.",
-      isGiveaway: false,
+      isGiveaway: 0,
+      buyerName: null,
+      buyerEmail: null,
+      soldDate: null,
+      subCategory: null,
+      createdAt: new Date(),
     },
     {
       id: "3",
       title: "Sealed Nike Sneakers - Air Jordan 1",
       category: "Shoes",
       condition: "New",
-      purchasePrice: 200,
-      sellingPrice: 450,
+      purchasePrice: "200.00",
+      sellingPrice: "450.00",
       quantity: 1,
-      weight: 2.5,
+      weight: "2.5",
       status: "draft" as const,
       tags: ["Sneakers", "Limited"],
       description: "Brand new Air Jordan 1 sneakers, sealed in original box.",
-      isGiveaway: false,
+      isGiveaway: 0,
+      buyerName: null,
+      buyerEmail: null,
+      soldDate: null,
+      subCategory: null,
+      createdAt: new Date(),
     },
     {
       id: "4",
       title: "Magic The Gathering - Black Lotus",
       category: "Trading Cards",
       condition: "Excellent",
-      purchasePrice: 5000,
-      sellingPrice: 8500,
+      purchasePrice: "5000.00",
+      sellingPrice: "8500.00",
       quantity: 1,
-      weight: 0.01,
+      weight: "0.01",
       status: "in_stock" as const,
       tags: ["MTG", "Power Nine"],
       description: "Black Lotus from Alpha set, excellent condition with minimal wear.",
-      isGiveaway: false,
+      isGiveaway: 0,
+      buyerName: null,
+      buyerEmail: null,
+      soldDate: null,
+      subCategory: null,
+      createdAt: new Date(),
     },
     {
       id: "5",
       title: "Signed Baseball - Babe Ruth",
       category: "Sports Memorabilia",
       condition: "Good",
-      purchasePrice: 1200,
-      sellingPrice: 2500,
+      purchasePrice: "1200.00",
+      sellingPrice: "2500.00",
       quantity: 1,
-      weight: 0.3,
+      weight: "0.3",
       status: "in_stock" as const,
       tags: ["Baseball", "Autographed"],
       description: "Authentic Babe Ruth signed baseball with certificate of authenticity.",
-      isGiveaway: false,
+      isGiveaway: 0,
+      buyerName: null,
+      buyerEmail: null,
+      soldDate: null,
+      subCategory: null,
+      createdAt: new Date(),
     },
     {
       id: "6",
       title: "Supreme Box Logo Hoodie",
       category: "Fashion",
       condition: "Near Mint",
-      purchasePrice: 300,
-      sellingPrice: 650,
+      purchasePrice: "300.00",
+      sellingPrice: "650.00",
       quantity: 2,
-      weight: 1.2,
+      weight: "1.2",
       status: "in_stock" as const,
       tags: ["Supreme", "Streetwear"],
       description: "Supreme Box Logo hoodie in near mint condition, size large.",
-      isGiveaway: false,
+      isGiveaway: 0,
+      buyerName: null,
+      buyerEmail: null,
+      soldDate: null,
+      subCategory: null,
+      createdAt: new Date(),
     },
-  ]);
+  ];
+
+  // Use mock data if API is empty, otherwise use real data
+  const displayItems = isLoading ? mockItems : (items.length > 0 ? items : mockItems);
 
   const allTags = ["Pokemon", "Holo", "Rare", "Funko", "Marvel", "Sneakers", "Limited", "MTG", "Power Nine", "Autographed", "Baseball", "Supreme", "Streetwear"];
 
@@ -174,7 +250,7 @@ export default function Inventory() {
           {viewMode === "grid" && (
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm text-muted-foreground">
-                Showing {items.length} items
+                Showing {displayItems.length} items
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">Card Size:</span>
@@ -193,7 +269,7 @@ export default function Inventory() {
           )}
           {viewMode === "list" && (
             <div className="mb-4 text-sm text-muted-foreground">
-              Showing {items.length} items
+              Showing {displayItems.length} items
             </div>
           )}
           <div className={viewMode === "grid" ? (
@@ -203,36 +279,40 @@ export default function Inventory() {
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
               : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
           ) : "space-y-4"}>
-            {items.map((item) => (
+            {displayItems.map((item: any) => (
               <InventoryCard
                 key={item.id}
                 {...item}
+                isGiveaway={!!item.isGiveaway}
                 onClick={() => {
                   setSelectedItem(item);
                   setDetailModalOpen(true);
                 }}
                 onEdit={() => console.log("Edit", item.id)}
                 onDuplicate={() => console.log("Duplicate", item.id)}
-                onDelete={() => console.log("Delete", item.id)}
-                onToggleGiveaway={() => {
-                  setItems(items.map(i => 
-                    i.id === item.id ? { ...i, isGiveaway: !i.isGiveaway } : i
-                  ));
-                }}
+                onDelete={() => deleteItemMutation.mutate(item.id)}
+                onToggleGiveaway={() => toggleGiveawayMutation.mutate(item)}
               />
             ))}
           </div>
         </div>
       </div>
 
-      <AddItemDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+      <AddItemDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen}
+        onItemAdded={() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
+          setAddDialogOpen(false);
+        }}
+      />
       {selectedItem && (
         <ItemDetailModal
           open={detailModalOpen}
           onOpenChange={setDetailModalOpen}
           item={selectedItem}
           onMarkAsSold={(buyerName, buyerEmail) => {
-            console.log("Marked as sold:", buyerName, buyerEmail);
+            markAsSoldMutation.mutate({ id: selectedItem.id, buyerName, buyerEmail });
           }}
         />
       )}

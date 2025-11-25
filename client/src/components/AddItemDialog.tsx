@@ -25,9 +25,10 @@ interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit?: (data: any) => void;
+  onItemAdded?: () => void;
 }
 
-export function AddItemDialog({ open, onOpenChange, onSubmit }: AddItemDialogProps) {
+export function AddItemDialog({ open, onOpenChange, onSubmit, onItemAdded }: AddItemDialogProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
 
@@ -46,6 +47,7 @@ export function AddItemDialog({ open, onOpenChange, onSubmit }: AddItemDialogPro
     e.preventDefault();
     console.log("Form submitted");
     onSubmit?.({}); 
+    onItemAdded?.();
     onOpenChange(false);
   };
 
