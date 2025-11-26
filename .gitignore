@@ -1,12 +1,16 @@
 node_modules
 dist
-dist-electron
 .DS_Store
 server/public
 vite.config.ts.*
 *.tar.gz
 
-# Electron build output (use GitHub Releases for distribution)
-release/
+# Tauri build output (use GitHub Releases for distribution)
+src-tauri/target/
 *.exe
+*.msi
 *.blockmap
+
+# Old Electron output (can be removed)
+release/
+dist-electron/
