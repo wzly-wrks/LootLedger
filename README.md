@@ -1,6 +1,6 @@
 # WhatStock - Whatnot Inventory Management Application
 
-A comprehensive inventory management application designed for Whatnot marketplace sellers to track collectibles, manage sales, and export listings in Whatnot's CSV format. WhatStock helps you manage your collectibles efficiently and grow your business.
+A lightweight, fast desktop application for Whatnot marketplace sellers to track collectibles, manage sales, and export listings. Built with Tauri for a tiny ~2MB installer that launches instantly.
 
 ## Overview
 
@@ -71,11 +71,16 @@ WhatStock provides sellers with an intuitive platform to:
 
 ## Tech Stack
 
+### Desktop App
+- **Tauri 2.0** - Lightweight native app framework (~2MB)
+- **Rust** - Fast, secure backend
+- **WebView2** - Native Windows rendering (already on Windows 10/11)
+
 ### Frontend
 - **React 18** - UI framework with TypeScript
 - **Vite** - Fast build tool and dev server
 - **Wouter** - Lightweight routing
-- **TanStack Query v5** - Server state management
+- **TanStack Query v5** - State management
 - **Tailwind CSS** - Utility-first styling
 - **Shadcn/ui** - High-quality component library
 - **Radix UI** - Accessible UI primitives
@@ -83,28 +88,29 @@ WhatStock provides sellers with an intuitive platform to:
 - **React Hook Form** - Form state management
 - **Zod** - Runtime type validation
 
-### Backend
-- **Express.js** - Web server framework
-- **TypeScript** - Type-safe backend
-- **Zod** - Request validation
-- **Drizzle ORM** - Type-safe database toolkit
-
 ### Storage
-- **In-Memory Storage** (MemStorage) - Current development storage
-- **PostgreSQL** (recommended for production)
+- **localStorage** - Persistent local storage (data survives app restarts)
 
 ## Installation
 
-### Prerequisites
+### Download (Recommended)
+Download the latest release from [GitHub Releases](https://github.com/wzly-wrks/whatstock/releases):
+- `WhatStock_x.x.x_x64-setup.exe` - Windows installer (~2MB)
+- `WhatStock_x.x.x_x64_en-US.msi` - MSI installer
+
+### Build from Source
+
+#### Prerequisites
 - Node.js (v18 or higher)
+- Rust (install from https://rustup.rs)
 - npm or yarn package manager
 
-### Setup
+#### Setup
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd lootledger
+git clone https://github.com/wzly-wrks/whatstock.git
+cd whatstock
 ```
 
 2. **Install dependencies**
@@ -112,87 +118,63 @@ cd lootledger
 npm install
 ```
 
-3. **Start the development server**
+3. **Run in development mode**
 ```bash
-npm run dev
+npm run tauri:dev
 ```
 
-The application will be available at `http://localhost:5000`
-
-## How to Run
-
+4. **Build for production**
 ```bash
-npm run dev
+npm run tauri:build
 ```
 
-This command:
-- Starts the Express backend API
-- Launches the Vite frontend development server
-- Enables hot module reloading for instant updates
-- Serves both frontend and backend on port 5000
+The installer will be created at `src-tauri/target/release/bundle/nsis/`
+
+## Scripts
+
+```bash
+# Start web development server (browser mode)
+npm run dev
+
+# Start Tauri development (desktop app with hot reload)
+npm run tauri:dev
+
+# Build production desktop app
+npm run tauri:build
+
+# Build and bump version (patch: 1.0.0 -> 1.0.1)
+npm run release:patch
+
+# Build and bump version (minor: 1.0.0 -> 1.1.0)
+npm run release:minor
+
+# Build and bump version (major: 1.0.0 -> 2.0.0)
+npm run release:major
+```
 
 ## Project Structure
 
 ```
-lootledger/
+whatstock/
 ├── client/                    # Frontend application
 │   └── src/
 │       ├── pages/            # Route pages (Dashboard, Inventory, etc)
 │       ├── components/       # Reusable React components
-│       ├── lib/              # Utilities and helpers
+│       ├── lib/              # Utilities, storage, and helpers
 │       ├── hooks/            # Custom React hooks
 │       └── App.tsx           # Main app component
-├── server/                    # Backend application
+├── server/                    # Web server (for browser mode)
 │   ├── routes.ts             # API endpoints
-│   ├── storage.ts            # Storage interface and implementation
-│   ├── index.ts              # Server entry point
-│   └── vite.ts               # Vite integration
+│   ├── storage.ts            # In-memory storage
+│   └── index.ts              # Server entry point
 ├── shared/                    # Shared types and schemas
 │   └── schema.ts             # Zod schemas and TypeScript types
+├── src-tauri/                 # Tauri desktop app
+│   ├── src/                  # Rust source code
+│   ├── icons/                # App icons
+│   └── tauri.conf.json       # Tauri configuration
+├── assets/                    # App assets (icons, images)
 └── README.md                 # This file
-```
-
-## API Endpoints
-
-### Inventory Management
-
-**Get all inventory items**
-```
-GET /api/inventory
-Response: InventoryItem[]
-```
-
-**Get single inventory item**
-```
-GET /api/inventory/:id
-Response: InventoryItem | 404
-```
-
-**Create new inventory item**
-```
-POST /api/inventory
-Body: InsertInventoryItem
-Response: InventoryItem (201)
-```
-
-**Update inventory item**
-```
-PATCH /api/inventory/:id
-Body: Partial<InventoryItem>
-Response: InventoryItem | 404
-```
-
-**Delete inventory item**
-```
-DELETE /api/inventory/:id
-Response: 200 | 404
-```
-
-**Mark item as sold**
-```
-POST /api/inventory/:id/sold
-Body: { buyerName: string, buyerEmail: string }
-Response: InventoryItem | 404
 ```
 
 ## Data Models
@@ -227,7 +209,7 @@ Response: InventoryItem | 404
 ### Adding an Item
 
 1. Navigate to the **Inventory** page
-2. Click the **Add Item** button
+2. Click the **Add Item** button (or floating + button)
 3. Fill in the form:
    - **Title**: Item name (required)
    - **Category**: Select primary category (required)
@@ -263,103 +245,27 @@ Response: InventoryItem | 404
 - **Delete**: Click delete button to remove an item
 - **Giveaway Toggle**: Mark items as giveaways with the gift icon
 
-## Features in Development
+## Data Storage
+
+WhatStock stores all your data locally using browser localStorage. This means:
+- ✅ **Data persists** between app restarts
+- ✅ **No account required** - everything stays on your computer
+- ✅ **Private** - your data never leaves your machine
+- ⚠️ **Backup**: Export your data regularly (Settings > Export)
+
+## Features Status
 
 - ✅ Dashboard with statistics
 - ✅ Inventory management (CRUD)
 - ✅ Item filtering and search
 - ✅ Mark as sold functionality
 - ✅ Giveaway tracking
+- ✅ Persistent local storage
+- ✅ Lightweight desktop app (~2MB)
 - ⏳ Whatnot CSV export
-- ⏳ Order history page
-- ⏳ Settings/preferences page
 - ⏳ Image upload functionality
-- ⏳ Database persistence (PostgreSQL)
-- ⏳ User authentication
-
-## Known Limitations
-
-### Current Version
-- **Storage**: In-memory storage resets on server restart (development only)
-- **Images**: Image upload UI present but not yet functional
-- **Export**: CSV export feature not yet implemented
-- **Persistence**: Data not persisted between sessions
-
-### Future Improvements
-- Implement PostgreSQL database for data persistence
-- Add cloud storage for item images
-- Complete Whatnot CSV export functionality
-- Add authentication and multi-user support
-- Implement order tracking and analytics
-- Add user preferences and settings
-
-## Configuration
-
-### Environment Variables
-
-Currently, the application uses in-memory storage. For production deployment with PostgreSQL:
-
-```bash
-DATABASE_URL=postgresql://user:password@host/dbname
-NODE_ENV=production
-```
-
-### Customization
-
-**Dark Theme Colors** (`client/src/index.css`):
-```css
---color-bg-primary: #111111;      /* Main background */
---color-accent: #F4E43D;          /* Yellow accent */
---color-text-primary: #FFFFFF;    /* Primary text */
-```
-
-## Development
-
-### Available Scripts
-
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-### Building Components
-
-The application uses Shadcn/ui components. To add new components:
-
-1. Components are located in `client/src/components/ui`
-2. Import and use in your pages
-3. Customize with Tailwind CSS classes
-
-## Deployment
-
-### Production Deployment
-
-For deploying to Replit or other platforms:
-
-1. **Setup Database**:
-   - Create PostgreSQL database
-   - Set `DATABASE_URL` environment variable
-
-2. **Install Dependencies**:
-```bash
-npm install
-```
-
-3. **Build and Run**:
-```bash
-npm run dev  # or use production build command
-```
-
-4. **Verify**:
-   - Check all API endpoints respond
-   - Verify data persistence
-   - Test all CRUD operations
+- ⏳ Data import/export
+- ⏳ Order history analytics
 
 ## Contributing
 
@@ -372,34 +278,9 @@ When contributing to WhatStock:
 5. Add proper error handling
 6. Test all CRUD operations
 
-## Support
-
-For issues or questions:
-1. Check existing GitHub issues
-2. Review the code comments
-3. Check the development guidelines in `replit.md`
-
 ## License
 
 MIT License - See LICENSE file for details
-
-## Roadmap
-
-### Phase 1 (Current)
-- ✅ Core inventory management
-- ✅ Dashboard and statistics
-- ✅ Item filtering and search
-
-### Phase 2 (Next)
-- CSV export functionality
-- Image upload and storage
-- Order tracking system
-
-### Phase 3 (Future)
-- User authentication
-- Multi-seller support
-- Advanced analytics
-- API integrations
 
 ---
 
